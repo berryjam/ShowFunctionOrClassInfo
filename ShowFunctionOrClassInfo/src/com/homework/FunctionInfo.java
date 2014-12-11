@@ -3,19 +3,10 @@ package com.homework;
 import java.util.List;
 
 public class FunctionInfo {
-	private String name;
-	private int referencedbyCount;
-	private int referenceCount;
 
 	private String id;
 	private List<String> referencedbyID;
 	private List<String> referenceID;
-
-	public FunctionInfo(String name, int referenceCount, int referencedbyCount) {
-		this.name = name;
-		this.referencedbyCount = referencedbyCount;
-		this.referenceCount = referenceCount;
-	}
 
 	public FunctionInfo(String id, List<String> referencedbyID,
 			List<String> referenceID) {
@@ -34,17 +25,5 @@ public class FunctionInfo {
 
 	public List<String> getReferenceID() {
 		return this.referenceID;
-	}
-
-	public String getName() {
-		return this.name;
-	}
-
-	public int getReferencedbyCount() {
-		return this.referencedbyCount;
-	}
-
-	public int getReferenceCount() {
-		return this.referenceCount;
 	}
 }

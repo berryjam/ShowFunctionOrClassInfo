@@ -35,8 +35,8 @@ public class FunctionGUI {
 
 	private FunctionHandler fh = new FunctionHandler();
 
-	public static String functionInfoPath = "/Users/berryjam/Tsinghua/软件体系结构/大作业相关/doxygen+ubigraph+GUI/函数信息.txt";
-	public static String functionHashInfoPath = "/Users/berryjam/Tsinghua/软件体系结构/大作业相关/doxygen+ubigraph+GUI/函数信息散列表.txt";
+	public static final String FUNCTION_INFO_PATH = "/Users/berryjam/Tsinghua/软件体系结构/大作业相关/doxygen+ubigraph+GUI/函数信息.txt";
+	public static final String FUNCTION_HASH_INFO_PATH = "/Users/berryjam/Tsinghua/软件体系结构/大作业相关/doxygen+ubigraph+GUI/函数信息散列表.txt";
 
 	private JFrame frame;
 	private JTabbedPane tabbedPane;
@@ -80,7 +80,6 @@ public class FunctionGUI {
 		try {
 			initialize();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -109,8 +108,8 @@ public class FunctionGUI {
 		JTree refbyTree = new JTree();
 		JTree refTree = new JTree();
 
-		fh.constructFunMap(functionHashInfoPath);
-		fh.constructFunsInfos(functionInfoPath);
+		fh.constructFunMap(FUNCTION_HASH_INFO_PATH);
+		fh.constructFunsInfos(FUNCTION_INFO_PATH);
 		refbyTree.setModel(getReferencedbyTreeModel());
 		refTree.setModel(getReferenceTreeModel());
 		scrollPane_ref = new JScrollPane(refTree);

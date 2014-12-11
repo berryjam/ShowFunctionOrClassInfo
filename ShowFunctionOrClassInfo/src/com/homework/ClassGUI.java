@@ -32,8 +32,8 @@ public class ClassGUI {
 
 	private ClassHandler ch = new ClassHandler();
 
-	public static String classInfoPath = "/Users/berryjam/Tsinghua/软件体系结构/大作业相关/doxygen+ubigraph+GUI/类信息.txt";
-	public static String classHashInfoPath = "/Users/berryjam/Tsinghua/软件体系结构/大作业相关/doxygen+ubigraph+GUI/类信息散列表.txt";
+	public static final String CLASS_INFO_PATH = "/Users/berryjam/Tsinghua/软件体系结构/大作业相关/doxygen+ubigraph+GUI/类信息.txt";
+	public static final String CLASS_HASH_INFO_PATH = "/Users/berryjam/Tsinghua/软件体系结构/大作业相关/doxygen+ubigraph+GUI/类信息散列表.txt";
 
 	private JFrame frame;
 	private JTabbedPane tabbedPane;
@@ -76,7 +76,6 @@ public class ClassGUI {
 		try {
 			initialize();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -104,8 +103,8 @@ public class ClassGUI {
 
 		JTree relatedTree = new JTree();
 
-		ch.constructFunMap(classHashInfoPath);
-		ch.constructFunsInfos(classInfoPath);
+		ch.constructFunMap(CLASS_HASH_INFO_PATH);
+		ch.constructFunsInfos(CLASS_INFO_PATH);
 		relatedTree.setModel(getRelatedTreeModel());
 		scrollPane_rel = new JScrollPane(relatedTree);
 
