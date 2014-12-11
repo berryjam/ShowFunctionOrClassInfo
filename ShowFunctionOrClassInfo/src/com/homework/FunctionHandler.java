@@ -18,7 +18,7 @@ import org.jfree.data.general.PieDataset;
 public class FunctionHandler {
 	private List<FunctionInfo> infos = new ArrayList<FunctionInfo>();
 
-	private Map<String, String> funinfo = new HashMap<String, String>();
+	private Map<String, String> map = new HashMap<String, String>();
 
 	public void loadInfo(String filePath) throws IOException {
 		FileReader fr = new FileReader(new File(filePath));
@@ -44,7 +44,7 @@ public class FunctionHandler {
 		String line = null;
 		while ((line = br.readLine()) != null) {
 			String[] tmp = line.split(";");
-			funinfo.put(tmp[0], tmp[1]);
+			map.put(tmp[0], tmp[1]);
 		}
 		br.close();
 	}
@@ -130,12 +130,12 @@ public class FunctionHandler {
 		System.out.println();
 	}
 
-	public List<FunctionInfo> getInfos() {
+	public List<FunctionInfo> getFunctionInfos() {
 		return this.infos;
 	}
 
-	public Map<String, String> getFunInfo() {
-		return this.funinfo;
+	public Map<String, String> getFunctionMap() {
+		return this.map;
 	}
 
 	public PieDataset createReferencedbyDataSet() {
@@ -155,8 +155,8 @@ public class FunctionHandler {
 		int index = 0, tmpCount = 0;
 		for (FunctionInfo info : infos) {
 			if (index < 10) {
-				result.setValue(funinfo.get(info.getID()), info
-						.getReferencedbyID().size());
+				result.setValue(map.get(info.getID()), info.getReferencedbyID()
+						.size());
 				tmpCount += info.getReferencedbyID().size();
 				index++;
 			} else
@@ -183,8 +183,8 @@ public class FunctionHandler {
 		int index = 0, tmpCount = 0;
 		for (FunctionInfo info : infos) {
 			if (index < 10) {
-				result.setValue(funinfo.get(info.getID()), info
-						.getReferenceID().size());
+				result.setValue(map.get(info.getID()), info.getReferenceID()
+						.size());
 				tmpCount += info.getReferenceID().size();
 				index++;
 			} else

@@ -2,7 +2,6 @@ package com.homework;
 
 import java.awt.EventQueue;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -15,22 +14,31 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
-import java.awt.Color;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PiePlot3D;
+import org.jfree.data.general.PieDataset;
+import org.jfree.util.Rotation;
 
-public class GUI {
+public class ClassGUI {
 
-	private FunctionHandler fh = new FunctionHandler();
+	private ClassHandler ch = new ClassHandler();
 
-	public static String functionInfoPath = "/Users/berryjam/Tsinghua/软件体系结构/大作业相关/doxygen+ubigraph+GUI/函数信息.txt";
-	public static String functionHashInfoPath = "/Users/berryjam/Tsinghua/软件体系结构/大作业相关/doxygen+ubigraph+GUI/函数信息散列表.txt";
+	public static String classInfoPath = "/Users/berryjam/Tsinghua/软件体系结构/大作业相关/doxygen+ubigraph+GUI/类信息.txt";
+	public static String classHashInfoPath = "/Users/berryjam/Tsinghua/软件体系结构/大作业相关/doxygen+ubigraph+GUI/类信息散列表.txt";
 
 	private JFrame frame;
+	private JTabbedPane tabbedPane;
+	private JPanel panel;
+	private JScrollPane scrollPane_rel;
 
 	/**
 	 * Launch the application.
@@ -39,7 +47,7 @@ public class GUI {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					GUI window = new GUI();
+					ClassGUI window = new ClassGUI();
 					window.frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -52,7 +60,7 @@ public class GUI {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					GUI window = new GUI();
+					ClassGUI window = new ClassGUI();
 					window.frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -64,7 +72,7 @@ public class GUI {
 	/**
 	 * Create the application.
 	 */
-	public GUI() {
+	public ClassGUI() {
 		try {
 			initialize();
 		} catch (IOException e) {
@@ -81,7 +89,7 @@ public class GUI {
 	 */
 	private void initialize() throws FileNotFoundException, IOException {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 791, 445);
+		frame.setBounds(100, 100, 851, 482);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 
@@ -89,101 +97,48 @@ public class GUI {
 		label.setBounds(321, 6, 117, 16);
 		frame.getContentPane().add(label);
 
-		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		tabbedPane.setBounds(6, 37, 466, 361);
+		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		tabbedPane.setBounds(6, 37, 382, 361);
 
 		frame.getContentPane().add(tabbedPane);
 
-		JTree tree = new JTree();
-		// tree.setModel(new DefaultTreeModel(new DefaultMutableTreeNode("函数") {
-		// {
-		// DefaultMutableTreeNode node_1;
-		// DefaultMutableTreeNode node_2;
-		// node_1 = new DefaultMutableTreeNode("函数1.1");
-		// node_2 = new DefaultMutableTreeNode("函数1.1.1");
-		// node_2.add(new DefaultMutableTreeNode("函数1.1.1.1"));
-		// node_1.add(node_2);
-		// add(node_1);
-		// node_1 = new DefaultMutableTreeNode("函数2.1");
-		// node_2 = new DefaultMutableTreeNode("函数2.1.1");
-		// node_2.add(new DefaultMutableTreeNode("函数2.1.1.1"));
-		// node_1.add(node_2);
-		// add(node_1);
-		// }
-		// }));
+		JTree relatedTree = new JTree();
 
-		fh.constructFunMap(functionHashInfoPath);
-		fh.constructFunsInfos(functionInfoPath);
-		tree.setModel(getReferencedbyTreeModel());
-		JScrollPane scrollPane_ref = new JScrollPane(tree);
+		ch.constructFunMap(classHashInfoPath);
+		ch.constructFunsInfos(classInfoPath);
+		relatedTree.setModel(getRelatedTreeModel());
+		scrollPane_rel = new JScrollPane(relatedTree);
 
-		tabbedPane.addTab("函数调用次数Top10信息", null, scrollPane_ref, null);
+		tabbedPane.addTab("类关联Top10信息", null, scrollPane_rel, null);
 
-		JScrollPane scrollPane_refby = new JScrollPane();
-		tabbedPane.addTab("函数被调用次数Top10信息", null, scrollPane_refby, null);
-
-		JLabel lblNewLabel = new JLabel(
-				rescaleImage(
-						new File(
-								"/Users/berryjam/Documents/workspace/ShowFunctionOrClassInfo/chart.png"),
-						400, 400));
-		lblNewLabel.setBackground(Color.WHITE);
-		lblNewLabel.setForeground(Color.WHITE);
-		lblNewLabel.setBounds(484, 71, 301, 313);
-		frame.getContentPane().add(lblNewLabel);
+		PieDataset dataset = ch.createRelatedIDDataSet();
+		JFreeChart chart = createChart(dataset, "类关联性比例图");
+		panel = new ChartPanel(chart);
+		panel.setBounds(400, 34, 445, 420);
+		frame.getContentPane().add(panel);
 	}
 
-	public DefaultTreeModel getReferencedbyTreeModel() {
-		return new DefaultTreeModel(new DefaultMutableTreeNode("函数列表") {
+	public DefaultTreeModel getRelatedTreeModel() {
+		return new DefaultTreeModel(new DefaultMutableTreeNode("类列表") {
 			{
-				Collections.sort(fh.getInfos(), new Comparator<FunctionInfo>() {
+				Collections.sort(ch.getClassInfos(),
+						new Comparator<ClassInfo>() {
 
-					@Override
-					public int compare(FunctionInfo o1, FunctionInfo o2) {
-						return Integer.compare(o2.getReferencedbyID().size(),
-								o1.getReferencedbyID().size());
-					}
-				});
+							@Override
+							public int compare(ClassInfo o1, ClassInfo o2) {
+								return Integer.compare(o2.getRelatedClassID()
+										.size(), o1.getRelatedClassID().size());
+							}
+						});
 				int count = 0;
 				DefaultMutableTreeNode node = null;
-				for (FunctionInfo info : fh.getInfos()) {
+				for (ClassInfo info : ch.getClassInfos()) {
 					if (count < 10) {
-						node = new DefaultMutableTreeNode(fh.getFunInfo().get(
+						node = new DefaultMutableTreeNode(ch.getClassMap().get(
 								info.getID()));
-						for (String s : info.getReferencedbyID()) {
+						for (String s : info.getRelatedClassID()) {
 							DefaultMutableTreeNode tmp = new DefaultMutableTreeNode(
-									fh.getFunInfo().get(s));
-							node.add(tmp);
-						}
-						add(node);
-						count++;
-					} else
-						break;
-				}
-			}
-		});
-	}
-
-	public DefaultTreeModel getReferenceTreeModel() {
-		return new DefaultTreeModel(new DefaultMutableTreeNode("函数列表") {
-			{
-				Collections.sort(fh.getInfos(), new Comparator<FunctionInfo>() {
-
-					@Override
-					public int compare(FunctionInfo o1, FunctionInfo o2) {
-						return Integer.compare(o2.getReferenceID().size(), o1
-								.getReferenceID().size());
-					}
-				});
-				int count = 0;
-				DefaultMutableTreeNode node = null;
-				for (FunctionInfo info : fh.getInfos()) {
-					if (count < 10) {
-						node = new DefaultMutableTreeNode(fh.getFunInfo().get(
-								info.getID()));
-						for (String s : info.getReferenceID()) {
-							DefaultMutableTreeNode tmp = new DefaultMutableTreeNode(
-									fh.getFunInfo().get(s));
+									ch.getClassMap().get(s));
 							node.add(tmp);
 						}
 						add(node);
@@ -243,5 +198,20 @@ public class GUI {
 
 		// 3. Convert the buffered image into an ImageIcon for return
 		return (new ImageIcon(resizedImg));
+	}
+
+	public JFreeChart createChart(PieDataset dataset, String title) {
+
+		JFreeChart chart = ChartFactory.createPieChart3D(title, // chart title
+				dataset, // data
+				true, // include legend
+				true, false);
+
+		PiePlot3D plot = (PiePlot3D) chart.getPlot();
+		plot.setStartAngle(290);
+		plot.setDirection(Rotation.CLOCKWISE);
+		plot.setForegroundAlpha(0.5f);
+		return chart;
+
 	}
 }

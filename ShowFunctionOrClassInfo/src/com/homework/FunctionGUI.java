@@ -31,7 +31,7 @@ import org.jfree.chart.plot.PiePlot3D;
 import org.jfree.data.general.PieDataset;
 import org.jfree.util.Rotation;
 
-public class GUIChart {
+public class FunctionGUI {
 
 	private FunctionHandler fh = new FunctionHandler();
 
@@ -51,7 +51,7 @@ public class GUIChart {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					GUIChart window = new GUIChart();
+					FunctionGUI window = new FunctionGUI();
 					window.frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -64,7 +64,7 @@ public class GUIChart {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					GUIChart window = new GUIChart();
+					FunctionGUI window = new FunctionGUI();
 					window.frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -76,7 +76,7 @@ public class GUIChart {
 	/**
 	 * Create the application.
 	 */
-	public GUIChart() {
+	public FunctionGUI() {
 		try {
 			initialize();
 		} catch (IOException e) {
@@ -166,23 +166,24 @@ public class GUIChart {
 	public DefaultTreeModel getReferencedbyTreeModel() {
 		return new DefaultTreeModel(new DefaultMutableTreeNode("函数列表") {
 			{
-				Collections.sort(fh.getInfos(), new Comparator<FunctionInfo>() {
+				Collections.sort(fh.getFunctionInfos(),
+						new Comparator<FunctionInfo>() {
 
-					@Override
-					public int compare(FunctionInfo o1, FunctionInfo o2) {
-						return Integer.compare(o2.getReferencedbyID().size(),
-								o1.getReferencedbyID().size());
-					}
-				});
+							@Override
+							public int compare(FunctionInfo o1, FunctionInfo o2) {
+								return Integer.compare(o2.getReferencedbyID()
+										.size(), o1.getReferencedbyID().size());
+							}
+						});
 				int count = 0;
 				DefaultMutableTreeNode node = null;
-				for (FunctionInfo info : fh.getInfos()) {
+				for (FunctionInfo info : fh.getFunctionInfos()) {
 					if (count < 10) {
-						node = new DefaultMutableTreeNode(fh.getFunInfo().get(
-								info.getID()));
+						node = new DefaultMutableTreeNode(fh.getFunctionMap()
+								.get(info.getID()));
 						for (String s : info.getReferencedbyID()) {
 							DefaultMutableTreeNode tmp = new DefaultMutableTreeNode(
-									fh.getFunInfo().get(s));
+									fh.getFunctionMap().get(s));
 							node.add(tmp);
 						}
 						add(node);
@@ -197,23 +198,24 @@ public class GUIChart {
 	public DefaultTreeModel getReferenceTreeModel() {
 		return new DefaultTreeModel(new DefaultMutableTreeNode("函数列表") {
 			{
-				Collections.sort(fh.getInfos(), new Comparator<FunctionInfo>() {
+				Collections.sort(fh.getFunctionInfos(),
+						new Comparator<FunctionInfo>() {
 
-					@Override
-					public int compare(FunctionInfo o1, FunctionInfo o2) {
-						return Integer.compare(o2.getReferenceID().size(), o1
-								.getReferenceID().size());
-					}
-				});
+							@Override
+							public int compare(FunctionInfo o1, FunctionInfo o2) {
+								return Integer.compare(o2.getReferenceID()
+										.size(), o1.getReferenceID().size());
+							}
+						});
 				int count = 0;
 				DefaultMutableTreeNode node = null;
-				for (FunctionInfo info : fh.getInfos()) {
+				for (FunctionInfo info : fh.getFunctionInfos()) {
 					if (count < 10) {
-						node = new DefaultMutableTreeNode(fh.getFunInfo().get(
-								info.getID()));
+						node = new DefaultMutableTreeNode(fh.getFunctionMap()
+								.get(info.getID()));
 						for (String s : info.getReferenceID()) {
 							DefaultMutableTreeNode tmp = new DefaultMutableTreeNode(
-									fh.getFunInfo().get(s));
+									fh.getFunctionMap().get(s));
 							node.add(tmp);
 						}
 						add(node);
