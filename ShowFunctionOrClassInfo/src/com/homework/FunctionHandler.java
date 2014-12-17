@@ -20,6 +20,10 @@ public class FunctionHandler {
 
 	private Map<String, String> map = new HashMap<String, String>();
 
+	private Map<String, String> fileMap = new HashMap<String, String>();
+
+	private Map<String, Integer> lineMap = new HashMap<String, Integer>();
+
 	public void constructFunMap(String filePath) throws FileNotFoundException,
 			IOException {
 		FileReader fr = new FileReader(new File(filePath));
@@ -27,7 +31,15 @@ public class FunctionHandler {
 		String line = null;
 		while ((line = br.readLine()) != null) {
 			String[] tmp = line.split(";");
+			if (tmp.length == 2) {
+				fileMap.put(tmp[0], null);
+				lineMap.put(tmp[0], -1);
+			} else {
+				fileMap.put(tmp[0], tmp[2]);
+				lineMap.put(tmp[0], Integer.parseInt(tmp[3]));
+			}
 			map.put(tmp[0], tmp[1]);
+
 		}
 		br.close();
 	}
@@ -135,4 +147,13 @@ public class FunctionHandler {
 		result.setValue("others", count - tmpCount);
 		return result;
 	}
+
+	public Map<String, String> getFileMap() {
+		return fileMap;
+	}
+
+	public Map<String, Integer> getLineMap() {
+		return lineMap;
+	}
+
 }

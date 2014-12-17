@@ -20,19 +20,37 @@ public class ClassHandler {
 
 	private Map<String, String> map = new HashMap<String, String>();
 
-	public void constructFunMap(String filePath) throws FileNotFoundException,
-			IOException {
+	private Map<String, String> refMap = new HashMap<String, String>();
+
+	private Map<String, String> fileMap = new HashMap<String, String>();
+
+	public void constructClassMap(String filePath)
+			throws FileNotFoundException, IOException {
 		FileReader fr = new FileReader(new File(filePath));
 		BufferedReader br = new BufferedReader(fr);
 		String line = null;
 		while ((line = br.readLine()) != null) {
 			String[] tmp = line.split(";");
 			map.put(tmp[0], tmp[1]);
+			if (tmp.length == 3) {
+				refMap.put(tmp[0], tmp[2]);
+			}
 		}
 		br.close();
 	}
 
-	public void constructFunsInfos(String filePath) throws IOException {
+	public void constructFilePathMap(String filePath) throws IOException {
+		FileReader fr = new FileReader(new File(filePath));
+		BufferedReader br = new BufferedReader(fr);
+		String line = null;
+		while ((line = br.readLine()) != null) {
+			String[] tmp = line.split(";");
+			fileMap.put(tmp[0], tmp[1]);
+		}
+		br.close();
+	}
+
+	public void constructClassesInfos(String filePath) throws IOException {
 		FileReader fr = new FileReader(new File(filePath));
 		BufferedReader br = new BufferedReader(fr);
 		String line = null;
@@ -90,4 +108,13 @@ public class ClassHandler {
 	public Map<String, String> getClassMap() {
 		return this.map;
 	}
+
+	public Map<String, String> getFileMap() {
+		return fileMap;
+	}
+
+	public Map<String, String> getRefMap() {
+		return refMap;
+	}
+
 }

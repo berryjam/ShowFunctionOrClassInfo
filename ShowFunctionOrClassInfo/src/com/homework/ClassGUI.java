@@ -1,17 +1,13 @@
 package com.homework;
 
 import java.awt.EventQueue;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
-import java.io.File;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -20,6 +16,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -34,6 +31,7 @@ public class ClassGUI {
 
 	public static final String CLASS_INFO_PATH = "/Users/berryjam/Tsinghua/软件体系结构/大作业相关/doxygen+ubigraph+GUI/类信息.txt";
 	public static final String CLASS_HASH_INFO_PATH = "/Users/berryjam/Tsinghua/软件体系结构/大作业相关/doxygen+ubigraph+GUI/类信息散列表.txt";
+	public static final String CLASS_FILE_HASH_INFO_PATH = "/Users/berryjam/Tsinghua/软件体系结构/大作业相关/doxygen+ubigraph+GUI/类路径散列表.txt";
 
 	private JFrame frame;
 	private JTabbedPane tabbedPane;
@@ -57,16 +55,12 @@ public class ClassGUI {
 	}
 
 	public static void show() {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					ClassGUI window = new ClassGUI();
-					window.frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
+		try {
+			ClassGUI window = new ClassGUI();
+			window.frame.setVisible(true);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -103,9 +97,11 @@ public class ClassGUI {
 
 		JTree relatedTree = new JTree();
 
-		ch.constructFunMap(CLASS_HASH_INFO_PATH);
-		ch.constructFunsInfos(CLASS_INFO_PATH);
+		ch.constructClassMap(CLASS_HASH_INFO_PATH);
+		ch.constructFilePathMap(CLASS_FILE_HASH_INFO_PATH);
+		ch.constructClassesInfos(CLASS_INFO_PATH);
 		relatedTree.setModel(getRelatedTreeModel());
+		setCLassTreeMouseListener(relatedTree);
 		scrollPane_rel = new JScrollPane(relatedTree);
 
 		tabbedPane.addTab("类关联Top10信息", null, scrollPane_rel, null);
@@ -118,7 +114,8 @@ public class ClassGUI {
 	}
 
 	public DefaultTreeModel getRelatedTreeModel() {
-		return new DefaultTreeModel(new DefaultMutableTreeNode("类列表") {
+		return new DefaultTreeModel(new DefaultMutableTreeNode(new ClassNode(
+				"-1", "类列表", null)) {
 			{
 				Collections.sort(ch.getClassInfos(),
 						new Comparator<ClassInfo>() {
@@ -132,12 +129,16 @@ public class ClassGUI {
 				int count = 0;
 				DefaultMutableTreeNode node = null;
 				for (ClassInfo info : ch.getClassInfos()) {
+					String id = info.getID();
 					if (count < 10) {
-						node = new DefaultMutableTreeNode(ch.getClassMap().get(
-								info.getID()));
+						node = new DefaultMutableTreeNode(new ClassNode(id, ch
+								.getClassMap().get(id), ch.getFileMap().get(
+								ch.getRefMap().get(id))));
 						for (String s : info.getRelatedClassID()) {
 							DefaultMutableTreeNode tmp = new DefaultMutableTreeNode(
-									ch.getClassMap().get(s));
+									new ClassNode(s, ch.getClassMap().get(s),
+											ch.getFileMap().get(
+													ch.getRefMap().get(s))));
 							node.add(tmp);
 						}
 						add(node);
@@ -147,56 +148,6 @@ public class ClassGUI {
 				}
 			}
 		});
-	}
-
-	public ImageIcon rescaleImage(File source, int maxHeight, int maxWidth) {
-		int newHeight = 0, newWidth = 0; // Variables for the new height and
-											// width
-		int priorHeight = 0, priorWidth = 0;
-		BufferedImage image = null;
-		ImageIcon sizeImage;
-
-		try {
-			image = ImageIO.read(source); // get the image
-		} catch (Exception e) {
-
-			e.printStackTrace();
-			System.out.println("Picture upload attempted & failed");
-		}
-
-		sizeImage = new ImageIcon(image);
-
-		if (sizeImage != null) {
-			priorHeight = sizeImage.getIconHeight();
-			priorWidth = sizeImage.getIconWidth();
-		}
-
-		// Calculate the correct new height and width
-		if ((float) priorHeight / (float) priorWidth > (float) maxHeight
-				/ (float) maxWidth) {
-			newHeight = maxHeight;
-			newWidth = (int) (((float) priorWidth / (float) priorHeight) * (float) newHeight);
-		} else {
-			newWidth = maxWidth;
-			newHeight = (int) (((float) priorHeight / (float) priorWidth) * (float) newWidth);
-		}
-
-		// Resize the image
-
-		// 1. Create a new Buffered Image and Graphic2D object
-		BufferedImage resizedImg = new BufferedImage(newWidth, newHeight,
-				BufferedImage.TYPE_INT_RGB);
-		Graphics2D g2 = resizedImg.createGraphics();
-
-		// 2. Use the Graphic object to draw a new image to the image in the
-		// buffer
-		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-				RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-		g2.drawImage(image, 0, 0, newWidth, newHeight, null);
-		g2.dispose();
-
-		// 3. Convert the buffered image into an ImageIcon for return
-		return (new ImageIcon(resizedImg));
 	}
 
 	public JFreeChart createChart(PieDataset dataset, String title) {
@@ -212,5 +163,58 @@ public class ClassGUI {
 		plot.setForegroundAlpha(0.5f);
 		return chart;
 
+	}
+
+	public void setCLassTreeMouseListener(JTree tree) {
+		MouseListener ml = new MouseListener() {
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				// TODO Auto-generated method stub
+				int selRow = tree.getRowForLocation(e.getX(), e.getY());
+				TreePath selPath = tree.getPathForLocation(e.getX(), e.getY());
+				if (selRow != -1) {
+					if (e.getClickCount() == 1) {
+						DefaultMutableTreeNode node = (DefaultMutableTreeNode) selPath
+								.getLastPathComponent();
+						ClassNode cn = (ClassNode) node.getUserObject();
+						String filePath = cn.getFilePath();
+						if (filePath != null)
+							TextEditorHelper.openFile(filePath);
+						System.out.println("FilePath:" + cn.getFilePath());
+
+					} else if (e.getClickCount() == 2) {
+						System.out.println("Double click-" + "selRow:" + selRow
+								+ ";" + "selPath:" + selPath);
+					}
+				}
+			}
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+		};
+		tree.addMouseListener(ml);
 	}
 }

@@ -1,20 +1,15 @@
 package com.homework;
 
 import java.awt.EventQueue;
-import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-import java.io.File;
+import java.awt.event.MouseListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -23,6 +18,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -61,16 +57,12 @@ public class FunctionGUI {
 	}
 
 	public static void show() {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					FunctionGUI window = new FunctionGUI();
-					window.frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
+		try {
+			FunctionGUI window = new FunctionGUI();
+			window.frame.setVisible(true);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -111,7 +103,10 @@ public class FunctionGUI {
 		fh.constructFunMap(FUNCTION_HASH_INFO_PATH);
 		fh.constructFunsInfos(FUNCTION_INFO_PATH);
 		refbyTree.setModel(getReferencedbyTreeModel());
+		setFunctionTreeMouseListener(refbyTree);
+
 		refTree.setModel(getReferenceTreeModel());
+		setFunctionTreeMouseListener(refTree);
 		scrollPane_ref = new JScrollPane(refTree);
 
 		tabbedPane.addTab("函数调用次数Top10信息", null, scrollPane_ref, null);
@@ -163,7 +158,8 @@ public class FunctionGUI {
 	}
 
 	public DefaultTreeModel getReferencedbyTreeModel() {
-		return new DefaultTreeModel(new DefaultMutableTreeNode("函数列表") {
+		return new DefaultTreeModel(new DefaultMutableTreeNode(
+				new FunctionNode("-1", "函数列表", null, -1)) {
 			{
 				Collections.sort(fh.getFunctionInfos(),
 						new Comparator<FunctionInfo>() {
@@ -177,12 +173,16 @@ public class FunctionGUI {
 				int count = 0;
 				DefaultMutableTreeNode node = null;
 				for (FunctionInfo info : fh.getFunctionInfos()) {
+					String id = info.getID();
 					if (count < 10) {
-						node = new DefaultMutableTreeNode(fh.getFunctionMap()
-								.get(info.getID()));
+						node = new DefaultMutableTreeNode(new FunctionNode(info
+								.getID(), fh.getFunctionMap().get(id), fh
+								.getFileMap().get(id), fh.getLineMap().get(id)));
 						for (String s : info.getReferencedbyID()) {
 							DefaultMutableTreeNode tmp = new DefaultMutableTreeNode(
-									fh.getFunctionMap().get(s));
+									new FunctionNode(s, fh.getFunctionMap()
+											.get(s), fh.getFileMap().get(s), fh
+											.getLineMap().get(s)));
 							node.add(tmp);
 						}
 						add(node);
@@ -195,7 +195,8 @@ public class FunctionGUI {
 	}
 
 	public DefaultTreeModel getReferenceTreeModel() {
-		return new DefaultTreeModel(new DefaultMutableTreeNode("函数列表") {
+		return new DefaultTreeModel(new DefaultMutableTreeNode(
+				new FunctionNode("-1", "函数列表", null, -1)) {
 			{
 				Collections.sort(fh.getFunctionInfos(),
 						new Comparator<FunctionInfo>() {
@@ -209,12 +210,16 @@ public class FunctionGUI {
 				int count = 0;
 				DefaultMutableTreeNode node = null;
 				for (FunctionInfo info : fh.getFunctionInfos()) {
+					String id = info.getID();
 					if (count < 10) {
-						node = new DefaultMutableTreeNode(fh.getFunctionMap()
-								.get(info.getID()));
+						node = new DefaultMutableTreeNode(new FunctionNode(info
+								.getID(), fh.getFunctionMap().get(id), fh
+								.getFileMap().get(id), fh.getLineMap().get(id)));
 						for (String s : info.getReferenceID()) {
 							DefaultMutableTreeNode tmp = new DefaultMutableTreeNode(
-									fh.getFunctionMap().get(s));
+									new FunctionNode(s, fh.getFunctionMap()
+											.get(s), fh.getFileMap().get(s), fh
+											.getLineMap().get(s)));
 							node.add(tmp);
 						}
 						add(node);
@@ -224,56 +229,6 @@ public class FunctionGUI {
 				}
 			}
 		});
-	}
-
-	public ImageIcon rescaleImage(File source, int maxHeight, int maxWidth) {
-		int newHeight = 0, newWidth = 0; // Variables for the new height and
-											// width
-		int priorHeight = 0, priorWidth = 0;
-		BufferedImage image = null;
-		ImageIcon sizeImage;
-
-		try {
-			image = ImageIO.read(source); // get the image
-		} catch (Exception e) {
-
-			e.printStackTrace();
-			System.out.println("Picture upload attempted & failed");
-		}
-
-		sizeImage = new ImageIcon(image);
-
-		if (sizeImage != null) {
-			priorHeight = sizeImage.getIconHeight();
-			priorWidth = sizeImage.getIconWidth();
-		}
-
-		// Calculate the correct new height and width
-		if ((float) priorHeight / (float) priorWidth > (float) maxHeight
-				/ (float) maxWidth) {
-			newHeight = maxHeight;
-			newWidth = (int) (((float) priorWidth / (float) priorHeight) * (float) newHeight);
-		} else {
-			newWidth = maxWidth;
-			newHeight = (int) (((float) priorHeight / (float) priorWidth) * (float) newWidth);
-		}
-
-		// Resize the image
-
-		// 1. Create a new Buffered Image and Graphic2D object
-		BufferedImage resizedImg = new BufferedImage(newWidth, newHeight,
-				BufferedImage.TYPE_INT_RGB);
-		Graphics2D g2 = resizedImg.createGraphics();
-
-		// 2. Use the Graphic object to draw a new image to the image in the
-		// buffer
-		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-				RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-		g2.drawImage(image, 0, 0, newWidth, newHeight, null);
-		g2.dispose();
-
-		// 3. Convert the buffered image into an ImageIcon for return
-		return (new ImageIcon(resizedImg));
 	}
 
 	public JFreeChart createChart(PieDataset dataset, String title) {
@@ -289,5 +244,60 @@ public class FunctionGUI {
 		plot.setForegroundAlpha(0.5f);
 		return chart;
 
+	}
+
+	public void setFunctionTreeMouseListener(JTree tree) {
+		MouseListener ml = new MouseListener() {
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				// TODO Auto-generated method stub
+				int selRow = tree.getRowForLocation(e.getX(), e.getY());
+				TreePath selPath = tree.getPathForLocation(e.getX(), e.getY());
+				if (selRow != -1) {
+					if (e.getClickCount() == 1) {
+						DefaultMutableTreeNode node = (DefaultMutableTreeNode) selPath
+								.getLastPathComponent();
+						FunctionNode fn = (FunctionNode) node.getUserObject();
+						String filePath = fn.getFilePath();
+						int line = fn.getLine();
+						if (filePath != null && line != -1)
+							TextEditorHelper.highlightFunction(filePath, line);
+						System.out.println("FilePath:" + fn.getFilePath() + ";"
+								+ "Line:" + fn.getLine());
+
+					} else if (e.getClickCount() == 2) {
+						System.out.println("Double click-" + "selRow:" + selRow
+								+ ";" + "selPath:" + selPath);
+					}
+				}
+			}
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+		};
+		tree.addMouseListener(ml);
 	}
 }

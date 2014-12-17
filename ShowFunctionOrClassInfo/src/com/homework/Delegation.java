@@ -15,4 +15,15 @@ public class Delegation {
 			break;
 		}
 	}
+
+	public static void run(int type) {
+		switch (type) {
+		case FUNCTION_TYPE:
+			FunctionGUI.show();
+			break;
+		case CLASS_TYPE:
+			ClassGUI.show();
+			break;
+		}
+	}
 }
